@@ -1,0 +1,1000 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Centrale d'équipements — Réservation de matériel</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,wght@0,300;0,400;0,600;1,300&family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+  :root {
+    --navy: #0b2a52;
+    --blue: #1a4f9a;
+    --blue-mid: #2a6ec7;
+    --blue-light: #dbe9ff;
+    --gold: #c49a22;
+    --gold-light: #fdf5dc;
+    --red: #c0392b;
+    --surface: #f4f6fa;
+    --white: #ffffff;
+    --border: #c8d5e8;
+    --text: #1a2a3a;
+    --text-muted: #5a6a7e;
+    --required: #b03020;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'IBM Plex Sans', sans-serif;
+    background: var(--surface);
+    color: var(--text);
+    min-height: 100vh;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  /* HEADER */
+  .site-header {
+    background: var(--navy);
+    padding: 0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.25);
+  }
+  .header-inner {
+    max-width: 960px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 14px 24px;
+  }
+  .logo-shield {
+    width: 42px; height: 42px;
+    background: var(--blue-mid);
+    border-radius: 4px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; flex-shrink: 0;
+  }
+  .header-text h1 {
+    font-family: 'Source Serif 4', serif;
+    font-size: 17px; font-weight: 600;
+    color: var(--white);
+    letter-spacing: 0.01em;
+  }
+  .header-text p {
+    font-size: 11px; color: #8ab0d8; font-weight: 300;
+    letter-spacing: 0.04em; text-transform: uppercase;
+  }
+  .required-note {
+    margin-left: auto;
+    background: rgba(192,57,43,0.15);
+    border: 1px solid rgba(192,57,43,0.4);
+    border-radius: 4px;
+    padding: 6px 12px;
+    font-size: 11px;
+    color: #f9b8ae;
+    font-family: 'IBM Plex Mono', monospace;
+    white-space: nowrap;
+  }
+  .required-note span { color: var(--red); }
+
+  /* LAYOUT */
+  .page-wrap {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 28px 24px 60px;
+    display: grid;
+    gap: 20px;
+  }
+
+  /* SECTION CARD */
+  .card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+    box-shadow: 0 1px 4px rgba(11,42,82,0.06);
+  }
+  .card-header {
+    background: var(--navy);
+    padding: 10px 20px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .card-header h2 {
+    font-size: 13px; font-weight: 600;
+    color: var(--white);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .card-header .badge {
+    margin-left: auto;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: #8ab0d8;
+  }
+  .card-body { padding: 20px; }
+
+  /* GRID LAYOUTS */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+  .grid-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 16px; }
+  .col-span-2 { grid-column: span 2; }
+  .col-span-3 { grid-column: span 3; }
+
+  @media (max-width: 640px) {
+    .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+    .col-span-2, .col-span-3 { grid-column: span 1; }
+  }
+
+  /* FORM FIELDS */
+  .field { display: flex; flex-direction: column; gap: 5px; }
+  .field label {
+    font-size: 11.5px; font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .field label .req { color: var(--required); margin-left: 2px; }
+  .field input, .field select, .field textarea {
+    border: 1.5px solid var(--border);
+    border-radius: 4px;
+    padding: 9px 12px;
+    font-size: 13.5px;
+    font-family: 'IBM Plex Sans', sans-serif;
+    color: var(--text);
+    background: var(--white);
+    transition: border-color 0.15s, box-shadow 0.15s;
+    outline: none;
+    -webkit-appearance: none;
+  }
+  .field input:focus, .field select:focus, .field textarea:focus {
+    border-color: var(--blue-mid);
+    box-shadow: 0 0 0 3px rgba(42,110,199,0.12);
+  }
+  .field select { cursor: pointer; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%235a6a7e' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px; }
+  .field textarea { resize: vertical; min-height: 80px; }
+
+  /* RADIO TOGGLE */
+  .toggle-group { display: flex; gap: 0; border: 1.5px solid var(--border); border-radius: 4px; overflow: hidden; }
+  .toggle-group input[type="radio"] { display: none; }
+  .toggle-group label {
+    flex: 1; text-align: center;
+    padding: 8px 12px;
+    font-size: 13px; font-weight: 500;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.15s;
+    border-right: 1px solid var(--border);
+    text-transform: none;
+    letter-spacing: 0;
+  }
+  .toggle-group label:last-of-type { border-right: none; }
+  .toggle-group input[type="radio"]:checked + label {
+    background: var(--blue);
+    color: white;
+  }
+
+  /* CHECKBOX */
+  .checkbox-group { display: flex; flex-direction: column; gap: 8px; }
+  .checkbox-item { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+  .checkbox-item input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--blue); cursor: pointer; }
+  .checkbox-item span { font-size: 13.5px; }
+
+  /* DATES ROW */
+  .dates-row {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: end;
+    gap: 12px;
+  }
+  .dates-arrow {
+    font-size: 20px; color: var(--text-muted);
+    padding-bottom: 9px; text-align: center;
+  }
+
+  /* INFOBANNER */
+  .info-banner {
+    background: var(--gold-light);
+    border: 1px solid #dac060;
+    border-left: 4px solid var(--gold);
+    border-radius: 4px;
+    padding: 10px 14px;
+    font-size: 12.5px;
+    color: #5a4010;
+    display: flex; gap: 8px; align-items: flex-start;
+  }
+  .info-banner .icon { flex-shrink: 0; font-size: 14px; }
+
+  /* ===== CATALOGUE ===== */
+  .catalogue-tabs {
+    display: flex; flex-wrap: wrap; gap: 6px;
+    margin-bottom: 16px;
+  }
+  .cat-tab {
+    padding: 6px 14px;
+    border-radius: 20px;
+    border: 1.5px solid var(--border);
+    background: var(--white);
+    font-size: 12px; font-weight: 500;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .cat-tab:hover { border-color: var(--blue-mid); color: var(--blue); }
+  .cat-tab.active { background: var(--blue); border-color: var(--blue); color: white; }
+
+  .catalogue-section { display: none; }
+  .catalogue-section.visible { display: block; }
+
+  .catalogue-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+    gap: 10px;
+    max-height: 420px;
+    overflow-y: auto;
+    padding: 2px;
+  }
+  .catalogue-grid::-webkit-scrollbar { width: 6px; }
+  .catalogue-grid::-webkit-scrollbar-track { background: var(--surface); border-radius: 3px; }
+  .catalogue-grid::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  .item-card {
+    border: 1.5px solid var(--border);
+    border-radius: 6px;
+    padding: 12px;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex; flex-direction: column; gap: 6px;
+    position: relative;
+    background: var(--white);
+    user-select: none;
+  }
+  .item-card:hover { border-color: var(--blue-mid); box-shadow: 0 2px 8px rgba(42,110,199,0.12); }
+  .item-card.selected {
+    border-color: var(--blue);
+    background: var(--blue-light);
+    box-shadow: 0 0 0 2px var(--blue-mid);
+  }
+  .item-card .item-check {
+    position: absolute; top: 8px; right: 8px;
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    background: white;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; color: white;
+    transition: all 0.15s;
+  }
+  .item-card.selected .item-check { background: var(--blue); border-color: var(--blue); }
+  .item-card .item-check::after { content: '✓'; }
+  .item-name { font-size: 13px; font-weight: 600; color: var(--text); padding-right: 24px; line-height: 1.3; }
+  .item-code { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--text-muted); }
+  .item-note { font-size: 11px; color: #6a7a8e; font-style: italic; }
+
+  /* QTY CONTROL */
+  .qty-control {
+    display: flex; align-items: center; gap: 6px;
+    margin-top: 4px;
+  }
+  .qty-control button {
+    width: 24px; height: 24px;
+    border-radius: 4px;
+    border: 1.5px solid var(--blue-mid);
+    background: white;
+    color: var(--blue-mid);
+    font-size: 16px; line-height: 1;
+    cursor: pointer; font-weight: 600;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.1s;
+  }
+  .qty-control button:hover { background: var(--blue-mid); color: white; }
+  .qty-control input[type="number"] {
+    width: 48px; height: 24px;
+    border: 1.5px solid var(--border);
+    border-radius: 4px;
+    text-align: center;
+    font-size: 13px; font-weight: 500;
+    color: var(--text);
+    padding: 0;
+  }
+  .qty-label { font-size: 11px; color: var(--text-muted); }
+
+  /* CART / PANIER */
+  .panier-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 14px;
+  }
+  .panier-title { font-size: 13px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; }
+  .panier-count {
+    background: var(--blue);
+    color: white;
+    border-radius: 12px;
+    padding: 2px 9px;
+    font-size: 12px; font-weight: 600;
+  }
+  .panier-empty {
+    text-align: center; padding: 24px;
+    color: var(--text-muted); font-size: 13px; font-style: italic;
+    background: var(--surface); border-radius: 4px;
+    border: 1.5px dashed var(--border);
+  }
+  .panier-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  .panier-table th {
+    background: var(--surface);
+    padding: 8px 12px;
+    text-align: left;
+    font-size: 11px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.05em; color: var(--text-muted);
+    border-bottom: 1px solid var(--border);
+  }
+  .panier-table td {
+    padding: 9px 12px;
+    border-bottom: 1px solid #e8eef6;
+    vertical-align: middle;
+  }
+  .panier-table tr:last-child td { border-bottom: none; }
+  .panier-table .remove-btn {
+    background: none; border: none; cursor: pointer;
+    color: #aaa; font-size: 16px; padding: 0;
+    transition: color 0.1s;
+  }
+  .panier-table .remove-btn:hover { color: var(--red); }
+  .item-code-cell { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--text-muted); }
+  .cat-badge {
+    display: inline-block;
+    font-size: 10px; padding: 2px 7px;
+    border-radius: 3px;
+    background: var(--blue-light);
+    color: var(--blue);
+    font-weight: 500;
+  }
+
+  /* SUBMIT AREA */
+  .submit-area {
+    display: flex; align-items: center; gap: 16px;
+    justify-content: flex-end;
+    padding-top: 4px;
+  }
+  .btn-reset {
+    background: none; border: 1.5px solid var(--border);
+    color: var(--text-muted); border-radius: 4px;
+    padding: 10px 20px; font-size: 13px; font-weight: 500;
+    cursor: pointer; font-family: inherit;
+    transition: all 0.15s;
+  }
+  .btn-reset:hover { border-color: var(--text-muted); color: var(--text); }
+  .btn-submit {
+    background: var(--navy);
+    color: white; border: none; border-radius: 4px;
+    padding: 11px 28px; font-size: 14px; font-weight: 600;
+    cursor: pointer; font-family: inherit;
+    display: flex; align-items: center; gap: 8px;
+    transition: all 0.15s;
+    letter-spacing: 0.02em;
+  }
+  .btn-submit:hover { background: var(--blue); }
+  .btn-submit .arrow { font-size: 16px; }
+
+  /* SUCCESS */
+  .success-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(11,42,82,0.6);
+    z-index: 200;
+    align-items: center; justify-content: center;
+  }
+  .success-overlay.show { display: flex; }
+  .success-box {
+    background: white;
+    border-radius: 8px;
+    padding: 40px 48px;
+    text-align: center;
+    max-width: 420px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  }
+  .success-icon { font-size: 48px; margin-bottom: 16px; }
+  .success-box h2 { font-family: 'Source Serif 4', serif; font-size: 22px; color: var(--navy); margin-bottom: 8px; }
+  .success-box p { color: var(--text-muted); font-size: 14px; line-height: 1.6; }
+  .success-box button { margin-top: 24px; }
+
+  /* DIVIDER */
+  .field-divider { border: none; border-top: 1px solid var(--border); margin: 4px 0; }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="header-inner">
+    <div class="logo-shield">🏛️</div>
+    <div class="header-text">
+      <h1>Centrale d'équipements</h1>
+      <p>Service des loisirs, des sports et de la vie communautaire — Ville de Québec</p>
+    </div>
+    <div class="required-note"><span>*</span> Champs obligatoires</div>
+  </div>
+</header>
+
+<div class="page-wrap">
+
+  <!-- INFOS GÉNÉRALES -->
+  <div class="card">
+    <div class="card-header">
+      <h2>Identification de la demande</h2>
+      <span class="badge">DP(2025-09)</span>
+    </div>
+    <div class="card-body">
+      <div class="grid-3" style="margin-bottom:16px">
+        <div class="field col-span-2">
+          <label>No de réservation de l'événement <span style="font-size:11px;font-weight:400;text-transform:none;letter-spacing:0">(si applicable)</span></label>
+          <input type="text" placeholder="Ex. : RES-2025-00123">
+        </div>
+        <div class="field">
+          <label>Date de la demande <span class="req">*</span></label>
+          <input type="date" id="dateDemande">
+        </div>
+      </div>
+      <div class="info-banner">
+        <span class="icon">⏱️</span>
+        <span>Soumettre la demande <strong>10 jours ouvrables à l'avance</strong>. Mettre en c.c. le répondant de l'organisme.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- RESPONSABLE -->
+  <div class="card">
+    <div class="card-header"><h2>Responsable de la réservation</h2></div>
+    <div class="card-body">
+      <div class="grid-3" style="margin-bottom:16px">
+        <div class="field col-span-2">
+          <label>Nom de l'organisation responsable <span class="req">*</span></label>
+          <input type="text" placeholder="Nom de l'organisme">
+        </div>
+        <div class="field">
+          <label>No d'organisme</label>
+          <input type="text" placeholder="Ex. : ORG-0042">
+        </div>
+      </div>
+      <div class="grid-2" style="margin-bottom:16px">
+        <div class="field">
+          <label>Nom de la personne-ressource <span class="req">*</span></label>
+          <input type="text" placeholder="Prénom et nom">
+        </div>
+        <div class="field">
+          <label>Courriel <span class="req">*</span></label>
+          <input type="email" placeholder="courriel@organisme.ca">
+        </div>
+      </div>
+      <div class="grid-4">
+        <div class="field col-span-2">
+          <label>Téléphone principal <span class="req">*</span></label>
+          <input type="tel" placeholder="(418) 000-0000">
+        </div>
+        <div class="field">
+          <label>Poste</label>
+          <input type="text" placeholder="1234">
+        </div>
+        <div class="field">
+          <label>Cellulaire</label>
+          <input type="tel" placeholder="(418) 000-0000">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ÉVÉNEMENT -->
+  <div class="card">
+    <div class="card-header"><h2>Réservation de matériel</h2></div>
+    <div class="card-body">
+      <div class="grid-2" style="margin-bottom:16px">
+        <div class="field col-span-2">
+          <label>Nom de l'événement / activité <span class="req">*</span></label>
+          <input type="text" placeholder="Ex. : Fête de quartier Saint-Roch">
+        </div>
+      </div>
+      <div class="grid-3" style="margin-bottom:16px">
+        <div class="field">
+          <label>Arrondissement <span class="req">*</span></label>
+          <select>
+            <option value="">— Sélectionner —</option>
+            <option>Beauport</option>
+            <option>Charlesbourg</option>
+            <option>La Cité-Limoilou</option>
+            <option>La Haute-Saint-Charles</option>
+            <option>Les Rivières</option>
+            <option>Sainte-Foy–Sillery–Cap-Rouge</option>
+          </select>
+        </div>
+        <div class="field col-span-2">
+          <label>Nom du bâtiment, lieu et adresse <span class="req">*</span></label>
+          <input type="text" placeholder="Ex. : Parc Victoria, 900 av. Holland, local A">
+        </div>
+      </div>
+      <div class="field" style="margin-bottom:14px">
+        <label>L'événement se tiendra à <span class="req">*</span></label>
+        <div class="toggle-group">
+          <input type="radio" name="lieu" id="interieur" value="intérieur" checked>
+          <label for="interieur">🏠 Intérieur</label>
+          <input type="radio" name="lieu" id="exterieur" value="extérieur">
+          <label for="exterieur">☀️ Extérieur</label>
+        </div>
+      </div>
+      <div class="dates-row" style="margin-bottom:16px">
+        <div class="field">
+          <label>Début de l'événement <span class="req">*</span></label>
+          <input type="datetime-local">
+        </div>
+        <div class="dates-arrow">→</div>
+        <div class="field">
+          <label>Fin de l'événement <span class="req">*</span></label>
+          <input type="datetime-local">
+        </div>
+      </div>
+
+      <hr class="field-divider" style="margin-bottom:16px">
+
+      <div class="grid-2" style="margin-bottom:16px">
+        <div class="field">
+          <label>Livraison par <span class="req">*</span></label>
+          <div class="toggle-group">
+            <input type="radio" name="livraison" id="livVille" value="Ville" checked>
+            <label for="livVille">🚚 Ville</label>
+            <input type="radio" name="livraison" id="livOrga" value="Organisme">
+            <label for="livOrga">🏃 Organisme</label>
+          </div>
+        </div>
+        <div class="field">
+          <label>Date de livraison <span class="req">*</span></label>
+          <input type="date">
+        </div>
+      </div>
+      <div class="grid-2">
+        <div class="field">
+          <label>Date de retour <span class="req">*</span></label>
+          <input type="date">
+        </div>
+        <div class="field">
+          <label>Lieu de livraison (si différent)</label>
+          <input type="text" placeholder="Adresse alternative">
+        </div>
+      </div>
+      <div style="margin-top:12px">
+        <div class="info-banner">
+          <span class="icon">🕐</span>
+          <span>Livraison du <strong>lundi au vendredi, 7 h à 14 h</strong> — aucune livraison la fin de semaine.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CATALOGUE -->
+  <div class="card">
+    <div class="card-header">
+      <h2>Sélection du matériel</h2>
+      <span class="badge">Catalogue avril 2026</span>
+    </div>
+    <div class="card-body">
+      <div class="info-banner" style="margin-bottom:16px">
+        <span class="icon">💡</span>
+        <span>Cliquez sur une catégorie pour afficher les items disponibles, puis cliquez sur chaque item pour l'ajouter à votre demande.</span>
+      </div>
+
+      <div class="catalogue-tabs" id="catTabs"></div>
+      <div id="catSections"></div>
+    </div>
+  </div>
+
+  <!-- PANIER -->
+  <div class="card" id="panierCard">
+    <div class="card-header">
+      <h2>Matériel sélectionné</h2>
+    </div>
+    <div class="card-body">
+      <div class="panier-header">
+        <span class="panier-title">Liste de la demande</span>
+        <span class="panier-count" id="panierCount">0 item</span>
+      </div>
+      <div id="panierContent">
+        <div class="panier-empty" id="panierEmpty">Aucun matériel sélectionné — utilisez le catalogue ci-dessus.</div>
+        <table class="panier-table" id="panierTable" style="display:none">
+          <thead>
+            <tr>
+              <th>Item</th>
+              <th>Code</th>
+              <th>Catégorie</th>
+              <th style="text-align:center">Qté</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="panierBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- INFORMATIONS SUPPLÉMENTAIRES -->
+  <div class="card">
+    <div class="card-header"><h2>Informations supplémentaires</h2></div>
+    <div class="card-body">
+      <div class="field">
+        <label>Précisions / Matériel non listé / Contact sur place / Numéro de local</label>
+        <textarea rows="5" placeholder="Pour le matériel n'apparaissant pas dans le catalogue, décrivez ici vos besoins spécifiques. Indiquez également toute information pertinente : contact sur place, numéro de local, précision sur le lieu, etc."></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- SUBMIT -->
+  <div class="submit-area">
+    <p style="font-size:12px;color:var(--text-muted);margin-right:auto">
+      📧 À envoyer à <strong>CentraleEquipementsLoisir@ville.quebec.qc.ca</strong>
+    </p>
+    <button class="btn-reset" onclick="resetForm()">Réinitialiser</button>
+    <button class="btn-submit" onclick="submitForm()">
+      Soumettre la demande <span class="arrow">→</span>
+    </button>
+  </div>
+
+</div>
+
+<!-- SUCCESS -->
+<div class="success-overlay" id="successOverlay">
+  <div class="success-box">
+    <div class="success-icon">✅</div>
+    <h2>Demande soumise!</h2>
+    <p>Votre formulaire de réservation a été préparé. N'oubliez pas de l'envoyer par courriel à <strong>CentraleEquipementsLoisir@ville.quebec.qc.ca</strong> en mettant votre répondant en copie.</p>
+    <p style="margin-top:8px;font-size:12px;color:#999">Informations : 418 641-6604</p>
+    <button class="btn-submit" onclick="document.getElementById('successOverlay').classList.remove('show')" style="margin:24px auto 0">
+      Fermer
+    </button>
+  </div>
+</div>
+
+<script>
+// ====== CATALOGUE DATA ======
+const catalogue = {
+  "Ameublements": [
+    { name: "Table en plastique carrée 36\"×36\"", code: "913-01-00-036" },
+    { name: "Table en plastique 5 pieds", code: "913-01-00-005" },
+    { name: "Table en plastique 6 pieds", code: "913-01-00-006" },
+    { name: "Table en plastique ronde 5 pieds", code: "913-01-00-105", note: "Capacité 8–10 pers." },
+    { name: "Table bistro 32\"×44\"", code: "913-01-00-032" },
+    { name: "Nappe ronde pour table bistro", code: "913-38-03-032" },
+    { name: "Chaise pliante noire", code: "913-02-00-000" },
+    { name: "Clip de retenue chaises (boîte 200)", code: "913-02-00-001" },
+    { name: "Poubelle 45 gallons", code: "913-05-00-145", note: "Sac non inclus" },
+    { name: "Lutrin sonorisé", code: "913-00-07-001", note: "Micro + ampli 50W + 2 HP" },
+    { name: "Lutrin protocolaire", code: "913-07-00-002" },
+    { name: "Vestiaire mobile sur roulettes", code: "913-03-02-106", note: "25 cintres inclus" },
+    { name: "Estrade aluminium 3 rangées (ext.)", code: "713-06-02-050", note: "1 mai–1 nov. — 4 pers. requis" },
+    { name: "Banc aluminium (ext.)", code: "713-06-00-000", note: "1 mai–1 nov." },
+  ],
+  "Accessibilité": [
+    { name: "Rampe d'accès trottoir avec garde-corps 4′×36\"", code: "995-03-01-436" },
+    { name: "Plateforme élévatrice LP11", code: "495-20-01-001", note: "Approbation requise — 300 kg max" },
+    { name: "Ensemble tapis passe-fil extérieur 20 po", code: "971-33-00-016" },
+    { name: "Tapis d'accès de plage AccessMat 33×5 pi", code: "995-02-01-033" },
+  ],
+  "Audio": [
+    { name: "Haut-parleur Bluetooth JBL", code: "971-02-99-011" },
+    { name: "Jeu mini système de son 2 entrées", code: "971-00-01-100" },
+    { name: "Système portatif Bluetooth Fender 4 entrées", code: "971-00-01-102" },
+    { name: "Système portatif JBL 208P Bluetooth 4 entrées", code: "973-00-04-001" },
+    { name: "Système de son Bluetooth avec lumières 2 entrées", code: "971-00-01-212" },
+    { name: "Système de son petit 4 entrées", code: "973-00-04-151" },
+    { name: "Système de son moyen 6–12 entrées", code: "973-00-06-201" },
+    { name: "Système de son grand 14–24 entrées", code: "973-00-16-301" },
+    { name: "Console de son 4 à 8 entrées", code: "9710104004" },
+    { name: "Console de son 10 à 12 entrées", code: "9710139110" },
+    { name: "Console de son 16 à 24 entrées", code: "9710139011" },
+    { name: "Console de son 32 entrées", code: "9710108132", note: "Technicien qualifié requis" },
+    { name: "Micro SM-58", code: "971-05-37-058" },
+    { name: "Micro SM-57", code: "971-05-37-257" },
+    { name: "Micro-casque", code: "", note: "Max 5 par événement" },
+    { name: "Micro-bâton", code: "", note: "Max 5 par événement" },
+    { name: "Ensemble micros Drum", code: "971-00-05-201" },
+    { name: "Walkie-talkie Motorola TS720", code: "971-11-11-710", note: "Portée ±8 km" },
+    { name: "Radio Motorola VHF (ensemble 8)", code: "971-11-11-700" },
+    { name: "Porte-voix à la main", code: "971-08-01-010" },
+    { name: "Pied de micro perche", code: "971-09-01-002" },
+    { name: "Rallonge électrique 25'", code: "971-10-01-025" },
+    { name: "Rallonge électrique 50'", code: "971-10-01-050" },
+    { name: "Multiprise", code: "971-10-10-002" },
+    { name: "Jeu piano numérique Roland FP-7", code: "971-00-10-507" },
+  ],
+  "Éclairage": [
+    { name: "Projecteur vertigo Mushroom", code: "972-01-05-900" },
+    { name: "Projecteur effet Micro 3D II Laser", code: "972-01-05-901" },
+    { name: "Projecteur effet Derby", code: "972-01-05-909" },
+    { name: "Projecteur 36 DEL RVB", code: "972-01-06-144" },
+    { name: "Projecteur Lyre à tête mobile", code: "972-01-05-918" },
+    { name: "Projecteur DEL Party avec trépied", code: "972-01-05-919" },
+    { name: "Projecteur DJ DEL GIGBAR avec trépied", code: "972-01-05-920" },
+    { name: "Barre DEL Ultra-Violet 48 po", code: "972-01-05-917" },
+    { name: "Stroboscope Amita 1200W", code: "972-01-06-120" },
+    { name: "Boule miroir 16\"", code: "972-00-05-522" },
+    { name: "Boule miroir 12\"", code: "972-00-05-502" },
+    { name: "Jeu DEL T-6 Chauvet (4 projecteurs)", code: "972-00-06-501" },
+    { name: "Coffre projecteur Par DEL 64", code: "972-00-02-204" },
+    { name: "Jeu 4 DEL Chauvet T-3", code: "972-00-06-201" },
+    { name: "Jeu fresnel Altman 750W", code: "972-00-01-501" },
+    { name: "Coffre Leko ETC 575W", code: "972-01-03-050" },
+    { name: "Console éclairage Leviton MC 7008 (16 entrées)", code: "972-02-03-016" },
+    { name: "Console éclairage Leviton N3008 DMX (8 entrées)", code: "972-02-03-008" },
+    { name: "Trépied barre pour 4 projecteurs 4'–10'", code: "972-06-05-510" },
+    { name: "Pont d'éclairage 8'×8\"", code: "972-06-03-318" },
+  ],
+  "Scène": [
+    { name: "Module de scène (praticable) 4'×4'", code: "914-01-01-404", note: "Réservation × 4" },
+    { name: "Pattes de praticables 8\"", code: "914-02-02-008" },
+    { name: "Pattes de praticables 12\"", code: "914-02-02-012" },
+    { name: "Pattes de praticables 16\"", code: "914-02-02-016" },
+    { name: "Pattes de praticables 24\"", code: "914-02-02-024" },
+    { name: "Pattes de praticables 32\"", code: "914-02-02-032" },
+    { name: "Escalier de scène 16\"", code: "914-04-01-016", note: "Max 2 / événement" },
+    { name: "Escalier de scène 24\"", code: "914-04-01-024", note: "Max 2 / événement" },
+    { name: "Escalier de scène 32\"", code: "914-04-01-032", note: "Max 2 / événement" },
+    { name: "Jupe de scène noir 32\"H×17'L", code: "914-03-04-032" },
+    { name: "Système de rideaux autoportants 12'×13'", code: "914-06-01-012", note: "Intérieur seulement — max 15 rideaux" },
+    { name: "Gradin chorale 24\" de hauteur", code: "614-04-01-272", note: "±18 personnes" },
+  ],
+  "Visuel": [
+    { name: "Écran portative 5 pieds", code: "972-05-02-165" },
+    { name: "Écran portative 6 pieds", code: "972-05-02-166" },
+    { name: "Écran portative 7 pieds", code: "972-05-02-167" },
+    { name: "Écran portative 8 pieds", code: "972-05-02-168" },
+    { name: "Écran gonflable 16'×12'", code: "970-05-03-216", note: "Cinéma plein air" },
+    { name: "Jeu d'écran 10' (intérieur)", code: "970-00-05-110" },
+    { name: "Jeu d'écran 10'×6'", code: "970-00-05-504" },
+    { name: "Projecteur multimédia 2000–5000 lumens", code: "" },
+    { name: "Téléviseur 47\" (intérieur)", code: "970-00-01-547" },
+    { name: "Téléviseur 50\" (intérieur)", code: "970-00-01-550" },
+    { name: "Cinéma plein air (ensemble)", code: "970-00-06-201" },
+    { name: "Câble HDMI 10'", code: "970-07-00-110" },
+    { name: "Câble HDMI 25'", code: "970-07-00-125" },
+    { name: "Câble HDMI 50'", code: "970-07-00-150" },
+  ],
+  "Événements": [
+    { name: "Tréteau affichage 24\"×35\"", code: "912-25-02-000" },
+    { name: "Tapis rouge 36\"×20'", code: "912-39-01-020" },
+    { name: "Tapis rouge 36\"×30'", code: "912-39-01-030" },
+    { name: "Baril de tirage acrylique 36\"", code: "912-29-03-036" },
+    { name: "Boîte de tirage acrylique 10\"", code: "912-35-01-003" },
+    { name: "Baril de tirage en métal 8\"", code: "912-29-02-008" },
+    { name: "Glacière Coleman 35 L", code: "912-07-02-062" },
+    { name: "Glacière Coleman 45 L", code: "912-07-02-045" },
+    { name: "Cafetière 36 tasses", code: "912-08-06-036" },
+    { name: "Cafetière 55 tasses", code: "912-08-06-055" },
+    { name: "Cafetière 100 tasses", code: "912-08-06-100" },
+    { name: "Machine à maïs soufflé 6 oz", code: "912-10-01-006", note: "Maïs non inclus" },
+    { name: "Machine barbe à papa", code: "912-10-02-010", note: "Sucre non inclus" },
+    { name: "Machine à hot-dog vapeur", code: "912-10-04-200", note: "Cap. 200 saucisses" },
+    { name: "Grille saucisse électrique (18 saucisses)", code: "912-12-09-004" },
+    { name: "Machine Sno-Kone", code: "912-10-03-188" },
+    { name: "Cuve à blé d'Inde 48 L", code: "912-02-06-048" },
+    { name: "Plaque chauffante propane 36\"×22\"", code: "912-16-02-036", note: "Propane non inclus" },
+    { name: "Réfrigérateur sur roulette 24 caisses", code: "912-06-09-024" },
+    { name: "Borne fontaine (ext., été)", code: "514-46-01-001", note: "Camp de jour prioritaire" },
+    { name: "Jeu d'échecs géant", code: "912-00-00-060" },
+    { name: "Jeu puissance 4", code: "912-44-01-010" },
+    { name: "Jeu lancer de haches", code: "912-44-01-100" },
+    { name: "Système de pointage AMS 600", code: "912-00-00-040" },
+    { name: "Coffre zone 0-5 ans", code: "912-00-03-001" },
+    { name: "Diable", code: "912-31-02-046" },
+    { name: "Chariot à plateforme 24\"×36\"", code: "912-32-01-036" },
+    { name: "Escabeau 6 pieds", code: "912-34-02-006", note: "Max 6 pieds" },
+    { name: "Podium de remise de médailles", code: "912-35-01-003" },
+    { name: "Bannière barricade «Québec»", code: "912-21-02-100" },
+  ],
+  "Exposition": [
+    { name: "Panneau d'exposition aluminium troué 4'×4'×6'", code: "715-07-02-404" },
+    { name: "Panneau d'exposition aluminium troué 4'×4'×6' (R)", code: "715-07-02-405" },
+    { name: "Panneau d'exposition bois troué 3'×4'×6' (int.)", code: "715-07-01-403" },
+    { name: "Ensemble de crochets (±100)", code: "715-07-02-411" },
+    { name: "Poteau file d'attente ruban rétractable 7' (int.)", code: "915-08-02-203", note: "Max 30" },
+    { name: "Poteau file d'attente plastique avec base", code: "915-08-02-104", note: "Max 30" },
+    { name: "Chevalet conférence avec tableau blanc", code: "915-01-03-001" },
+    { name: "Chevalet portatif aluminium", code: "915-01-01-003" },
+  ],
+  "Sécurité": [
+    { name: "Cône orange 18\"", code: "995-10-01-018" },
+    { name: "Dossard de sécurité", code: "995-11-01-001" },
+    { name: "Trousse de premiers soins", code: "995-01-02-000" },
+    { name: "Extincteur à poudre 2,5 livres", code: "915-18-01-205" },
+    { name: "Extincteur à poudre 10 livres", code: "995-18-01-010" },
+    { name: "Génératrice Honda 7000i ES", code: "995-30-03-501", note: "Ext. seulement — autorisation spéciale" },
+  ],
+  "Auvent": [
+    { name: "Auvent bleu 10×10", code: "916-01-03-010", note: "Max 15 / événement" },
+    { name: "Mur pour auvent 10×10", code: "916-04-03-010" },
+    { name: "Pesée en acier pour auvent ±30 lbs", code: "916-05-06-002" },
+  ],
+};
+
+// ====== CART STATE ======
+let cart = {}; // key: code or name, value: {name, code, cat, qty}
+
+// ====== BUILD TABS & SECTIONS ======
+const tabContainer = document.getElementById('catTabs');
+const sectionsContainer = document.getElementById('catSections');
+
+let firstCat = true;
+for (const [cat, items] of Object.entries(catalogue)) {
+  // Tab
+  const tab = document.createElement('button');
+  tab.className = 'cat-tab' + (firstCat ? ' active' : '');
+  tab.textContent = cat;
+  tab.dataset.cat = cat;
+  tab.addEventListener('click', () => switchTab(cat));
+  tabContainer.appendChild(tab);
+
+  // Section
+  const section = document.createElement('div');
+  section.className = 'catalogue-section' + (firstCat ? ' visible' : '');
+  section.id = 'cat-' + cat;
+
+  const grid = document.createElement('div');
+  grid.className = 'catalogue-grid';
+
+  items.forEach(item => {
+    const key = item.code || item.name;
+    const card = document.createElement('div');
+    card.className = 'item-card';
+    card.dataset.key = key;
+    card.dataset.cat = cat;
+    card.dataset.name = item.name;
+    card.dataset.code = item.code;
+    card.innerHTML = `
+      <div class="item-check"></div>
+      <div class="item-name">${item.name}</div>
+      ${item.code ? `<div class="item-code">${item.code}</div>` : ''}
+      ${item.note ? `<div class="item-note">${item.note}</div>` : ''}
+      <div class="qty-control" style="display:none">
+        <button onclick="changeQty(event,'${key}',-1)">−</button>
+        <input type="number" min="1" value="1" id="qty-${key.replace(/[^a-z0-9]/gi,'_')}" onchange="setQty(event,'${key}')">
+        <span class="qty-label">unité(s)</span>
+      </div>
+    `;
+    card.addEventListener('click', (e) => {
+      if (e.target.tagName === 'BUTTON' || e.target.tagName === 'INPUT') return;
+      toggleItem(key, item.name, item.code, cat, card);
+    });
+    grid.appendChild(card);
+  });
+
+  section.appendChild(grid);
+  sectionsContainer.appendChild(section);
+  firstCat = false;
+}
+
+function switchTab(cat) {
+  document.querySelectorAll('.cat-tab').forEach(t => t.classList.toggle('active', t.dataset.cat === cat));
+  document.querySelectorAll('.catalogue-section').forEach(s => s.classList.toggle('visible', s.id === 'cat-' + cat));
+}
+
+function toggleItem(key, name, code, cat, card) {
+  if (cart[key]) {
+    delete cart[key];
+    card.classList.remove('selected');
+    card.querySelector('.qty-control').style.display = 'none';
+  } else {
+    cart[key] = { name, code, cat, qty: 1 };
+    card.classList.add('selected');
+    card.querySelector('.qty-control').style.display = 'flex';
+  }
+  renderPanier();
+}
+
+function changeQty(e, key) {
+  e.stopPropagation();
+  if (!cart[key]) return;
+  const inputId = 'qty-' + key.replace(/[^a-z0-9]/gi,'_');
+  const input = document.getElementById(inputId);
+  const delta = parseInt(e.target.textContent) === -1 || e.target.textContent.includes('−') ? -1 : 1;
+  cart[key].qty = Math.max(1, (cart[key].qty || 1) + delta);
+  if (input) input.value = cart[key].qty;
+  renderPanier();
+}
+
+function setQty(e, key) {
+  e.stopPropagation();
+  if (!cart[key]) return;
+  cart[key].qty = Math.max(1, parseInt(e.target.value) || 1);
+  e.target.value = cart[key].qty;
+  renderPanier();
+}
+
+function renderPanier() {
+  const keys = Object.keys(cart);
+  const count = keys.length;
+  const countEl = document.getElementById('panierCount');
+  countEl.textContent = count + ' item' + (count > 1 ? 's' : '');
+  const empty = document.getElementById('panierEmpty');
+  const table = document.getElementById('panierTable');
+  const body = document.getElementById('panierBody');
+
+  if (count === 0) {
+    empty.style.display = '';
+    table.style.display = 'none';
+    return;
+  }
+  empty.style.display = 'none';
+  table.style.display = '';
+  body.innerHTML = '';
+  for (const [key, item] of Object.entries(cart)) {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><strong>${item.name}</strong></td>
+      <td class="item-code-cell">${item.code || '—'}</td>
+      <td><span class="cat-badge">${item.cat}</span></td>
+      <td style="text-align:center">
+        <div style="display:flex;align-items:center;justify-content:center;gap:5px">
+          <button class="qty-control" style="display:inline-flex;width:22px;height:22px;border-radius:3px;border:1.5px solid #2a6ec7;background:white;color:#2a6ec7;font-size:14px;cursor:pointer;align-items:center;justify-content:center;font-weight:600" onclick="changePanierQty('${key}',-1)">−</button>
+          <span style="font-weight:600;min-width:24px;text-align:center">${item.qty}</span>
+          <button class="qty-control" style="display:inline-flex;width:22px;height:22px;border-radius:3px;border:1.5px solid #2a6ec7;background:white;color:#2a6ec7;font-size:14px;cursor:pointer;align-items:center;justify-content:center;font-weight:600" onclick="changePanierQty('${key}',1)">+</button>
+        </div>
+      </td>
+      <td><button class="remove-btn" onclick="removeItem('${key}')">×</button></td>
+    `;
+    body.appendChild(tr);
+  }
+}
+
+function changePanierQty(key, delta) {
+  if (!cart[key]) return;
+  cart[key].qty = Math.max(1, cart[key].qty + delta);
+  // sync card
+  const inputId = 'qty-' + key.replace(/[^a-z0-9]/gi,'_');
+  const input = document.getElementById(inputId);
+  if (input) input.value = cart[key].qty;
+  renderPanier();
+}
+
+function removeItem(key) {
+  delete cart[key];
+  // unselect card
+  document.querySelectorAll(`.item-card[data-key="${CSS.escape(key)}"]`).forEach(c => {
+    c.classList.remove('selected');
+    const qc = c.querySelector('.qty-control');
+    if (qc) qc.style.display = 'none';
+  });
+  renderPanier();
+}
+
+function resetForm() {
+  if (!confirm('Réinitialiser le formulaire ? Toutes les données seront effacées.')) return;
+  document.querySelectorAll('input, textarea, select').forEach(el => {
+    if (el.type === 'radio') el.checked = el.defaultChecked;
+    else if (el.type === 'checkbox') el.checked = false;
+    else el.value = el.defaultValue || '';
+  });
+  cart = {};
+  document.querySelectorAll('.item-card.selected').forEach(c => {
+    c.classList.remove('selected');
+    const qc = c.querySelector('.qty-control');
+    if (qc) qc.style.display = 'none';
+  });
+  renderPanier();
+  // Set today's date
+  document.getElementById('dateDemande').valueAsDate = new Date();
+}
+
+function submitForm() {
+  if (Object.keys(cart).length === 0) {
+    alert('Veuillez sélectionner au moins un item du catalogue avant de soumettre.');
+    return;
+  }
+  document.getElementById('successOverlay').classList.add('show');
+}
+
+// Init date
+document.getElementById('dateDemande').valueAsDate = new Date();
+</script>
+</body>
+</html>
